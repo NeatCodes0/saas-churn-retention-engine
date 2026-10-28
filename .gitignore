@@ -1,0 +1,25 @@
+# Byte-compiled / optimized files
+__pycache__/
+*.py[cod]
+*.class
+*.ipynb_checkpoints
+
+# Virtual environment
+venv/
+env/
+.env
+
+# Data & database artifacts
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+*.duckdb
+*.duckdb.wal
+
+# OS artifacts
+dist/
+build/
+*.egg-info/
+.DS_Store
+Thumbs.db
