@@ -8,7 +8,7 @@ WITH CUSTOMER_MONTHLY_LEDGER AS (
         MRR                                                                    AS CURRENT_MRR,
         EVENT_TYPE,
  
-        -- Window function: Retrieve previous period MRR per customer
+        -- Window function: Look back at the customer's prior month MRR
         LAG(MRR, 1, 0.0) OVER ( PARTITION BY CUSTOMER_ID ORDER BY EVENT_DATE ) AS PREVIOUS_MRR
     FROM
         SUBSCRIPTION_EVENTS
@@ -20,7 +20,7 @@ WITH CUSTOMER_MONTHLY_LEDGER AS (
         CURRENT_MRR,
         EVENT_TYPE,
  
-        -- New MRR: First acquisition or zero-baseline activation
+        -- New MRR: First time billing or reactivated from 0
         CASE
             WHEN (PREVIOUS_MRR = 0.0
             OR PREVIOUS_MRR IS NULL) AND CURRENT_MRR > 0.0
@@ -30,7 +30,7 @@ WITH CUSTOMER_MONTHLY_LEDGER AS (
                 0.0
         END            AS NEW_MRR,
  
-        -- Expansion MRR: Existing active account upgrade
+        -- Expansion MRR: Existing customer paying more than last month
         CASE
             WHEN CURRENT_MRR > PREVIOUS_MRR AND PREVIOUS_MRR > 0.0
             THEN
@@ -39,7 +39,7 @@ WITH CUSTOMER_MONTHLY_LEDGER AS (
                 0.0
         END            AS EXPANSION_MRR,
  
-        -- Contraction MRR: Existing active account downgrade
+        -- Contraction MRR: Existing customer paying less than last month (downgrade)
         CASE
             WHEN CURRENT_MRR < PREVIOUS_MRR AND CURRENT_MRR > 0.0
             THEN
@@ -48,7 +48,7 @@ WITH CUSTOMER_MONTHLY_LEDGER AS (
                 0.0
         END            AS CONTRACTION_MRR,
  
-        -- Churned MRR: Cancellation or dropped to 0
+        -- Churned MRR: Customer dropped to 0 or churned
         CASE
             WHEN CURRENT_MRR = 0.0 OR EVENT_TYPE = 'churn'
             THEN
