@@ -164,6 +164,12 @@ MODEL_PATH = "models/churn_model.joblib"
 # -----------------------------------------------------------------------------
 @st.cache_resource
 def get_engine():
+    db_file = Path(DB_PATH)
+    if not db_file.exists():
+        db_file.parent.mkdir(parents=True, exist_ok=True)
+        from src.data.generate_events import generate_all_events
+        generate_all_events()
+    
     return duckdb.connect(DB_PATH, read_only=True)
 
 
